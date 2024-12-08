@@ -28,7 +28,7 @@ EnduraFit is an iOS fitness application that generates personalized workout plan
 - Codable for data serialization
 
 ## Project Structure 
-
+```bash
 EnduraFit/
 ├── Models/
 │ ├── User.swift
@@ -46,6 +46,7 @@ EnduraFit/
 │ └── ReviewPlanView.swift
 └── ViewModels/
 └── WorkoutPlanViewModel.swift
+```
 
 ## Setup
 
