@@ -2,6 +2,7 @@ import SwiftUI
 
 struct ReviewPlanView: View {
     @ObservedObject var viewModel: WorkoutPlanViewModel
+    @EnvironmentObject var workoutStore: WorkoutStore
     @Environment(\.dismiss) var dismiss
     
     var body: some View {
@@ -53,6 +54,9 @@ struct ReviewPlanView: View {
                 Button(action: {
                     Task {
                         try? await viewModel.generateWorkoutPlan()
+                        if let workout = viewModel.generatedWorkout {
+                            workoutStore.addWorkout(workout)
+                        }
                         dismiss()
                     }
                 }) {

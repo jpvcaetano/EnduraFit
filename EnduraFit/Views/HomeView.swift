@@ -12,6 +12,7 @@ struct HomeView: View {
                     .padding()
                 
                 Button(action: {
+                    viewModel.reset()
                     showingPlanGenerator = true
                 }) {
                     Text("Create New Workout Plan")
@@ -27,10 +28,16 @@ struct HomeView: View {
                 Spacer()
             }
             .navigationTitle("Home")
-            .sheet(isPresented: $showingPlanGenerator) {
+            .sheet(isPresented: $showingPlanGenerator, onDismiss: {
+                viewModel.reset()
+            }) {
                 WorkoutPlanGeneratorView(viewModel: viewModel)
             }
         }
     }
+}
+
+#Preview {
+    HomeView()
 }
 

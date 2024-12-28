@@ -9,9 +9,12 @@ import SwiftUI
 
 @main
 struct EnduraFitApp: App {
+    @StateObject private var workoutStore = WorkoutStore()
+    
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            MainView()
+                .environmentObject(workoutStore)
         }
     }
 }

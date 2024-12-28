@@ -40,4 +40,14 @@ class WorkoutPlanViewModel: ObservableObject {
             createdAt: Date()
         )
     }
+    
+    func reset() {
+        currentStep = .goals
+        selectedGoals.removeAll()
+        selectedLocation = nil
+        selectedDays.removeAll()
+        desiredDuration = .thirty
+        generatedWorkout = nil
+        isGeneratingPlan = false
+    }
 } 
