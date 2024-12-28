@@ -11,17 +11,9 @@ struct WorkoutsView: View {
                         .foregroundColor(.gray)
                 } else {
                     ForEach(workoutStore.savedWorkouts) { workout in
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text(workout.name)
-                                .font(.headline)
-                            Text("\(workout.exercises.count) exercises")
-                                .font(.subheadline)
-                                .foregroundColor(.secondary)
-                            Text(workout.createdAt.formatted(date: .abbreviated, time: .shortened))
-                                .font(.caption)
-                                .foregroundColor(.secondary)
+                        NavigationLink(destination: WorkoutDetailView(workout: workout)) {
+                            WorkoutRow(workout: workout)
                         }
-                        .padding(.vertical, 4)
                     }
                     .onDelete(perform: workoutStore.deleteWorkout)
                 }
@@ -32,5 +24,23 @@ struct WorkoutsView: View {
                     .disabled(workoutStore.savedWorkouts.isEmpty)
             }
         }
+    }
+}
+
+struct WorkoutRow: View {
+    let workout: Workout
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(workout.name)
+                .font(.headline)
+            Text("\(workout.exercises.count) exercises")
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+            Text(workout.createdAt.formatted(date: .abbreviated, time: .shortened))
+                .font(.caption)
+                .foregroundColor(.secondary)
+        }
+        .padding(.vertical, 4)
     }
 } 
