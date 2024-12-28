@@ -35,6 +35,14 @@ class WorkoutPlanViewModel: ObservableObject {
                     reps: 12,
                     restTime: 60,
                     description: "Start in a plank position and lower your body until your chest nearly touches the ground."
+                ),
+                .init(
+                    id: UUID(),
+                    name: "Pull-ups",
+                    sets: 3,
+                    reps: 12,
+                    restTime: 60,
+                    description: "Start in a plank position and lower your body until your chest nearly touches the ground."
                 )
             ],
             createdAt: Date()
