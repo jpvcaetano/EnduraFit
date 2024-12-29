@@ -1,65 +1,100 @@
 import SwiftUI
 
 struct ProfileView: View {
-    @State private var isSignedIn = false
+    @EnvironmentObject var authService: AuthenticationService
+    @State private var email = ""
+    @State private var password = ""
+    @State private var isLoading = false
+    @State private var errorMessage: String?
     
     var body: some View {
         NavigationView {
-            if isSignedIn {
+            if let user = authService.currentUser {
                 List {
                     Section("Personal Information") {
-                        Text("Name: Not Set")
-                        Text("Birthday: Not Set")
-                        Text("Gender: Not Set")
-                    }
-                    
-                    Section("Preferences") {
-                        Text("Fitness Goals: Not Set")
-                        Text("Preferred Location: Not Set")
+                        Text("Email: \(user.email)")
+                        Text("Name: \(user.name ?? "Not Set")")
                     }
                     
                     Section {
                         Button("Sign Out", role: .destructive) {
-                            // Sign out action
+                            do {
+                                try authService.signOut()
+                            } catch {
+                                errorMessage = error.localizedDescription
+                            }
                         }
                     }
                 }
                 .navigationTitle("Profile")
+                .alert("Error", isPresented: .constant(errorMessage != nil)) {
+                    Button("OK") { errorMessage = nil }
+                } message: {
+                    Text(errorMessage ?? "")
+                }
             } else {
                 VStack(spacing: 20) {
                     Text("Sign In")
                         .font(.title)
                         .padding()
                     
-                    Button(action: {
-                        // Apple Sign In
-                    }) {
-                        HStack {
-                            Image(systemName: "apple.logo")
-                            Text("Sign in with Apple")
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color(.systemGray6))
-                        .cornerRadius(10)
+                    TextField("Email", text: $email)
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                        .textContentType(.emailAddress)
+                        .autocapitalization(.none)
+                    
+                    SecureField("Password", text: $password)
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                        .textContentType(.password)
+                    
+                    if let errorMessage {
+                        Text(errorMessage)
+                            .foregroundColor(.red)
+                            .font(.caption)
                     }
                     
-                    Button(action: {
-                        // Google Sign In
-                    }) {
-                        HStack {
-                            Image(systemName: "g.circle.fill")
-                            Text("Sign in with Google")
+                    Button(action: signIn) {
+                        if isLoading {
+                            ProgressView()
+                        } else {
+                            Text("Sign In")
                         }
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color(.systemGray6))
-                        .cornerRadius(10)
                     }
+                    .buttonStyle(.borderedProminent)
+                    .disabled(isLoading)
+                    
+                    Button(action: signUp) {
+                        Text("Create Account")
+                    }
+                    .disabled(isLoading)
                 }
                 .padding()
                 .navigationTitle("Profile")
             }
+        }
+    }
+    
+    private func signIn() {
+        Task {
+            isLoading = true
+            do {
+                try await authService.signIn(email: email, password: password)
+            } catch {
+                errorMessage = error.localizedDescription
+            }
+            isLoading = false
+        }
+    }
+    
+    private func signUp() {
+        Task {
+            isLoading = true
+            do {
+                try await authService.signUp(email: email, password: password)
+            } catch {
+                errorMessage = error.localizedDescription
+            }
+            isLoading = false
         }
     }
 } 

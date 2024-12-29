@@ -6,6 +6,11 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		3A6BF1172D21760D00BD6CFE /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 3A6BF1162D21760D00BD6CFE /* FirebaseAuth */; };
+		3A6BF1192D21760D00BD6CFE /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = 3A6BF1182D21760D00BD6CFE /* FirebaseCore */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		3AE047C02D061F870078C8FD /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -52,6 +57,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3A6BF1192D21760D00BD6CFE /* FirebaseCore in Frameworks */,
+				3A6BF1172D21760D00BD6CFE /* FirebaseAuth in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -112,6 +119,8 @@
 			);
 			name = EnduraFit;
 			packageProductDependencies = (
+				3A6BF1162D21760D00BD6CFE /* FirebaseAuth */,
+				3A6BF1182D21760D00BD6CFE /* FirebaseCore */,
 			);
 			productName = EnduraFit;
 			productReference = 3AE047AF2D061F7A0078C8FD /* EnduraFit.app */;
@@ -195,6 +204,9 @@
 			);
 			mainGroup = 3AE047A62D061F7A0078C8FD;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				3A6BF1152D21760D00BD6CFE /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 3AE047B02D061F7A0078C8FD /* Products */;
 			projectDirPath = "";
@@ -558,6 +570,30 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		3A6BF1152D21760D00BD6CFE /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 11.6.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		3A6BF1162D21760D00BD6CFE /* FirebaseAuth */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 3A6BF1152D21760D00BD6CFE /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAuth;
+		};
+		3A6BF1182D21760D00BD6CFE /* FirebaseCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 3A6BF1152D21760D00BD6CFE /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseCore;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 3AE047A72D061F7A0078C8FD /* Project object */;
 }
