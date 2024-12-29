@@ -4,6 +4,9 @@ struct AuthView: View {
     @EnvironmentObject var authService: AuthenticationService
     @State private var email = ""
     @State private var password = ""
+    @State private var name = ""
+    @State private var birthDate = Date()
+    @State private var gender: User.Gender = .preferNotToSay
     @State private var isLoading = false
     @State private var errorMessage: String?
     @State private var isRegistering = false
@@ -20,69 +23,96 @@ struct AuthView: View {
     
     var body: some View {
         NavigationView {
-            VStack(spacing: 20) {
-                Text(isRegistering ? "Create Account" : "Welcome Back")
-                    .font(.title)
-                    .padding()
-                
-                VStack(alignment: .leading, spacing: 8) {
-                    TextField("Email", text: $email)
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
-                        .textContentType(.emailAddress)
-                        .autocapitalization(.none)
-                        .keyboardType(.emailAddress)
-                        .onChange(of: email) { _ in
-                            errorMessage = nil
-                        }
+            ScrollView {
+                VStack(spacing: 20) {
+                    Text(isRegistering ? "Create Account" : "Welcome Back")
+                        .font(.title)
+                        .padding()
                     
-                    if !email.isEmpty && !isValidEmail {
-                        Text("Please enter a valid email")
+                    Group {
+                        // Email and password fields
+                        VStack(alignment: .leading, spacing: 8) {
+                            TextField("Email", text: $email)
+                                .textFieldStyle(RoundedBorderTextFieldStyle())
+                                .textContentType(.emailAddress)
+                                .autocapitalization(.none)
+                                .keyboardType(.emailAddress)
+                                .onChange(of: email) { _ in
+                                    errorMessage = nil
+                                }
+                            
+                            if !email.isEmpty && !isValidEmail {
+                                Text("Please enter a valid email")
+                                    .foregroundColor(.red)
+                                    .font(.caption)
+                            }
+                        }
+                        
+                        VStack(alignment: .leading, spacing: 8) {
+                            SecureField("Password", text: $password)
+                                .textFieldStyle(RoundedBorderTextFieldStyle())
+                                .textContentType(isRegistering ? .newPassword : .password)
+                                .onChange(of: password) { _ in
+                                    errorMessage = nil
+                                }
+                            
+                            if isRegistering && !password.isEmpty && !isValidPassword {
+                                Text("Password must be at least 6 characters")
+                                    .foregroundColor(.red)
+                                    .font(.caption)
+                            }
+                        }
+                        
+                        if isRegistering {
+                            // Additional registration fields
+                            TextField("Full Name", text: $name)
+                                .textFieldStyle(RoundedBorderTextFieldStyle())
+                                .textContentType(.name)
+                            
+                            DatePicker("Birth Date",
+                                     selection: $birthDate,
+                                     in: ...Date(),
+                                     displayedComponents: .date)
+                                .datePickerStyle(.compact)
+                            
+                            Picker("Gender", selection: $gender) {
+                                ForEach(User.Gender.allCases, id: \.self) { gender in
+                                    Text(gender.rawValue.capitalized)
+                                        .tag(gender)
+                                }
+                            }
+                            .pickerStyle(.menu)
+                        }
+                    }
+                    .padding(.horizontal)
+                    
+                    if let errorMessage {
+                        Text(errorMessage)
                             .foregroundColor(.red)
                             .font(.caption)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.vertical, 4)
                     }
-                }
-                
-                VStack(alignment: .leading, spacing: 8) {
-                    SecureField("Password", text: $password)
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
-                        .textContentType(isRegistering ? .newPassword : .password)
-                        .onChange(of: password) { _ in
-                            errorMessage = nil
-                        }
                     
-                    if isRegistering && !password.isEmpty && !isValidPassword {
-                        Text("Password must be at least 6 characters")
-                            .foregroundColor(.red)
-                            .font(.caption)
+                    Button(action: handleAuth) {
+                        if isLoading {
+                            ProgressView()
+                        } else {
+                            Text(isRegistering ? "Sign Up" : "Sign In")
+                                .frame(maxWidth: .infinity)
+                        }
                     }
-                }
-                
-                if let errorMessage {
-                    Text(errorMessage)
-                        .foregroundColor(.red)
-                        .font(.caption)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.vertical, 4)
-                }
-                
-                Button(action: handleAuth) {
-                    if isLoading {
-                        ProgressView()
-                    } else {
-                        Text(isRegistering ? "Sign Up" : "Sign In")
-                            .frame(maxWidth: .infinity)
+                    .buttonStyle(.borderedProminent)
+                    .disabled(isLoading || !isValidEmail || (isRegistering && !isValidPassword))
+                    
+                    Button(action: { isRegistering.toggle() }) {
+                        Text(isRegistering ? "Already have an account? Sign In" : "Don't have an account? Sign Up")
+                            .foregroundColor(.blue)
                     }
+                    .disabled(isLoading)
                 }
-                .buttonStyle(.borderedProminent)
-                .disabled(isLoading || !isValidEmail || (isRegistering && !isValidPassword))
-                
-                Button(action: { isRegistering.toggle() }) {
-                    Text(isRegistering ? "Already have an account? Sign In" : "Don't have an account? Sign Up")
-                        .foregroundColor(.blue)
-                }
-                .disabled(isLoading)
+                .padding()
             }
-            .padding()
             .navigationBarHidden(true)
         }
     }
@@ -90,6 +120,11 @@ struct AuthView: View {
     private func handleAuth() {
         guard !email.isEmpty && !password.isEmpty else {
             errorMessage = AuthError.emptyFields.errorDescription
+            return
+        }
+        
+        if isRegistering && name.isEmpty {
+            errorMessage = "Please enter your name"
             return
         }
         
@@ -107,7 +142,13 @@ struct AuthView: View {
             isLoading = true
             do {
                 if isRegistering {
-                    try await authService.signUp(email: email, password: password)
+                    try await authService.signUp(
+                        email: email,
+                        password: password,
+                        name: name,
+                        birthDate: birthDate,
+                        gender: gender
+                    )
                 } else {
                     try await authService.signIn(email: email, password: password)
                 }

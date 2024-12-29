@@ -6,6 +6,7 @@ struct ProfileView: View {
     @State private var password = ""
     @State private var isLoading = false
     @State private var errorMessage: String?
+    @State private var showingAuth = false
     
     var body: some View {
         NavigationView {
@@ -14,6 +15,12 @@ struct ProfileView: View {
                     Section("Personal Information") {
                         Text("Email: \(user.email)")
                         Text("Name: \(user.name ?? "Not Set")")
+                        if let birthDate = user.birthDate {
+                            Text("Birth Date: \(birthDate.formatted(date: .long, time: .omitted))")
+                        }
+                        if let gender = user.gender {
+                            Text("Gender: \(gender.rawValue.capitalized)")
+                        }
                     }
                     
                     Section {
@@ -63,13 +70,16 @@ struct ProfileView: View {
                     .buttonStyle(.borderedProminent)
                     .disabled(isLoading)
                     
-                    Button(action: signUp) {
+                    Button(action: { showingAuth = true }) {
                         Text("Create Account")
                     }
                     .disabled(isLoading)
                 }
                 .padding()
                 .navigationTitle("Profile")
+                .fullScreenCover(isPresented: $showingAuth) {
+                    AuthView()
+                }
             }
         }
     }
@@ -79,18 +89,6 @@ struct ProfileView: View {
             isLoading = true
             do {
                 try await authService.signIn(email: email, password: password)
-            } catch {
-                errorMessage = error.localizedDescription
-            }
-            isLoading = false
-        }
-    }
-    
-    private func signUp() {
-        Task {
-            isLoading = true
-            do {
-                try await authService.signUp(email: email, password: password)
             } catch {
                 errorMessage = error.localizedDescription
             }

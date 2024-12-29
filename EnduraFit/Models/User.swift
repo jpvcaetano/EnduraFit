@@ -8,11 +8,11 @@ struct User: Codable {
     var gender: Gender?
     var preferences: WorkoutPreferences?
     
-    enum Gender: String, Codable {
+    enum Gender: String, Codable, CaseIterable {
         case male
         case female
         case other
-        case preferNotToSay
+        case preferNotToSay = "prefer not to say"
     }
 }
 

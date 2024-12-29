@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		3A6BF1172D21760D00BD6CFE /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 3A6BF1162D21760D00BD6CFE /* FirebaseAuth */; };
 		3A6BF1192D21760D00BD6CFE /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = 3A6BF1182D21760D00BD6CFE /* FirebaseCore */; };
+		3A6BF11E2D21935000BD6CFE /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = 3A6BF11D2D21935000BD6CFE /* FirebaseFirestore */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -59,6 +60,7 @@
 			files = (
 				3A6BF1192D21760D00BD6CFE /* FirebaseCore in Frameworks */,
 				3A6BF1172D21760D00BD6CFE /* FirebaseAuth in Frameworks */,
+				3A6BF11E2D21935000BD6CFE /* FirebaseFirestore in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -121,6 +123,7 @@
 			packageProductDependencies = (
 				3A6BF1162D21760D00BD6CFE /* FirebaseAuth */,
 				3A6BF1182D21760D00BD6CFE /* FirebaseCore */,
+				3A6BF11D2D21935000BD6CFE /* FirebaseFirestore */,
 			);
 			productName = EnduraFit;
 			productReference = 3AE047AF2D061F7A0078C8FD /* EnduraFit.app */;
@@ -592,6 +595,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 3A6BF1152D21760D00BD6CFE /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseCore;
+		};
+		3A6BF11D2D21935000BD6CFE /* FirebaseFirestore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 3A6BF1152D21760D00BD6CFE /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseFirestore;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
