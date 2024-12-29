@@ -18,9 +18,15 @@ struct EnduraFitApp: App {
     
     var body: some Scene {
         WindowGroup {
-            MainView()
-                .environmentObject(workoutStore)
-                .environmentObject(authService)
+            Group {
+                if authService.isInitializing {
+                    ProgressView("Loading...")
+                } else {
+                    MainView()
+                        .environmentObject(workoutStore)
+                        .environmentObject(authService)
+                }
+            }
         }
     }
 }

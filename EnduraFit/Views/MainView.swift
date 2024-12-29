@@ -8,22 +8,30 @@
 import SwiftUI
 
 struct MainView: View {
+    @EnvironmentObject var authService: AuthenticationService
+    
     var body: some View {
-        TabView {
-            HomeView()
-                .tabItem {
-                    Label("Home", systemImage: "house.fill")
+        Group {
+            if authService.currentUser != nil {
+                TabView {
+                    HomeView()
+                        .tabItem {
+                            Label("Home", systemImage: "house.fill")
+                        }
+                    
+                    WorkoutsView()
+                        .tabItem {
+                            Label("Workouts", systemImage: "figure.run")
+                        }
+                    
+                    ProfileView()
+                        .tabItem {
+                            Label("Profile", systemImage: "person.fill")
+                        }
                 }
-            
-            WorkoutsView()
-                .tabItem {
-                    Label("Workouts", systemImage: "figure.run")
-                }
-            
-            ProfileView()
-                .tabItem {
-                    Label("Profile", systemImage: "person.fill")
-                }
+            } else {
+                AuthView()
+            }
         }
     }
 }
