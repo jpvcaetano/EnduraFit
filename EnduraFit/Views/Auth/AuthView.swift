@@ -118,9 +118,8 @@ struct AuthView: View {
         }
         .alert("Verify Your Email", isPresented: $showingVerificationAlert) {
             Button("OK") {
-                // Reset form and switch to sign in
+                // Switch to sign in but keep the email
                 isRegistering = false
-                email = ""
                 password = ""
                 name = ""
                 birthDate = Date()
