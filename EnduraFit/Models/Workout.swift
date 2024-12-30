@@ -1,14 +1,14 @@
 import Foundation
 
 struct Workout: Identifiable, Codable {
-    let id: UUID
+    let id: String
     let name: String
     let exercises: [Exercise]
     let createdAt: Date
     var completedAt: Date?
     
     struct Exercise: Identifiable, Codable {
-        let id: UUID
+        let id: String
         let name: String
         let sets: Int
         let reps: Int

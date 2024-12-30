@@ -62,29 +62,3 @@ struct ExerciseCard: View {
         .padding(.horizontal)
     }
 }
-
-#Preview {
-    WorkoutDetailView(workout: Workout(
-        id: UUID(),
-        name: "Full Body Workout",
-        exercises: [
-            .init(
-                id: UUID(),
-                name: "Push-ups",
-                sets: 3,
-                reps: 12,
-                restTime: 60,
-                description: "Start in a plank position and lower your body until your chest nearly touches the ground."
-            ),
-            .init(
-                id: UUID(),
-                name: "Squats",
-                sets: 4,
-                reps: 15,
-                restTime: 90,
-                description: "Stand with feet shoulder-width apart, lower your body as if sitting back into a chair."
-            )
-        ],
-        createdAt: Date()
-    ))
-} 

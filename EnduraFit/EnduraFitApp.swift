@@ -9,11 +9,14 @@ import SwiftUI
 
 @main
 struct EnduraFitApp: App {
-    @StateObject private var workoutStore = WorkoutStore()
     @StateObject private var authService = AuthenticationService()
+    @StateObject private var workoutStore: WorkoutStore
     
     init() {
         FirebaseConfig.configure()
+        let authService = AuthenticationService()
+        _authService = StateObject(wrappedValue: authService)
+        _workoutStore = StateObject(wrappedValue: WorkoutStore(authService: authService))
     }
     
     var body: some Scene {

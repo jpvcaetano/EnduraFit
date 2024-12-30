@@ -25,11 +25,11 @@ class WorkoutPlanViewModel: ObservableObject {
         // TODO: Implement OpenAI API call
         // For now, return mock data
         generatedWorkout = Workout(
-            id: UUID(),
+            id: UUID().uuidString,
             name: "Full Body Workout",
             exercises: [
                 .init(
-                    id: UUID(),
+                    id: UUID().uuidString,
                     name: "Push-ups",
                     sets: 3,
                     reps: 12,
@@ -37,7 +37,7 @@ class WorkoutPlanViewModel: ObservableObject {
                     description: "Start in a plank position and lower your body until your chest nearly touches the ground."
                 ),
                 .init(
-                    id: UUID(),
+                    id: UUID().uuidString,
                     name: "Pull-ups",
                     sets: 3,
                     reps: 12,
