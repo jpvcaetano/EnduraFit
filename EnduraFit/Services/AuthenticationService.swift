@@ -13,6 +13,7 @@ enum AuthError: LocalizedError {
     case wrongPassword
     case emptyFields
     case networkError
+    case emailNotVerified
     
     var errorDescription: String? {
         switch self {
@@ -34,6 +35,8 @@ enum AuthError: LocalizedError {
             return "Please fill in all fields"
         case .networkError:
             return "Network error. Please check your connection"
+        case .emailNotVerified:
+            return "Please verify your email address before signing in"
         }
     }
 }
@@ -46,8 +49,9 @@ class AuthenticationService: ObservableObject {
     private let db = Firestore.firestore()
     
     init() {
-        currentUser = Auth.auth().currentUser.map { user in
-            User(
+        currentUser = Auth.auth().currentUser.flatMap { user in
+            guard user.isEmailVerified else { return nil }
+            return User(
                 id: user.uid,
                 name: user.displayName,
                 email: user.email ?? ""
@@ -59,7 +63,11 @@ class AuthenticationService: ObservableObject {
             
             Task {
                 if let user = user {
-                    self.currentUser = try? await self.fetchUserProfile(userId: user.uid)
+                    if user.isEmailVerified {
+                        self.currentUser = try? await self.fetchUserProfile(userId: user.uid)
+                    } else {
+                        self.currentUser = nil
+                    }
                 } else {
                     self.currentUser = nil
                 }
@@ -79,7 +87,10 @@ class AuthenticationService: ObservableObject {
             // 1. Create authentication user
             let result = try await Auth.auth().createUser(withEmail: email, password: password)
             
-            // 2. Create user profile
+            // 2. Send verification email
+            try await result.user.sendEmailVerification()
+            
+            // 3. Create user profile
             let user = User(
                 id: result.user.uid,
                 name: name,
@@ -88,15 +99,16 @@ class AuthenticationService: ObservableObject {
                 gender: gender
             )
             
-            // 3. Save to Firestore
+            // 4. Save to Firestore
             try await saveUserProfile(user)
             
-            // 4. Update display name
+            // 5. Update display name
             let changeRequest = result.user.createProfileChangeRequest()
             changeRequest.displayName = name
             try await changeRequest.commitChanges()
             
-            currentUser = user
+            // Don't set currentUser here - user needs to verify email first
+            currentUser = nil
             
         } catch let error as NSError {
             switch error.code {
@@ -131,11 +143,17 @@ class AuthenticationService: ObservableObject {
     func signIn(email: String, password: String) async throws {
         do {
             let result = try await Auth.auth().signIn(withEmail: email, password: password)
-            currentUser = User(
-                id: result.user.uid,
-                name: result.user.displayName,
-                email: result.user.email ?? ""
-            )
+            
+            // Always check email verification
+            guard result.user.isEmailVerified else {
+                // Optionally resend verification email
+                try await result.user.sendEmailVerification()
+                throw AuthError.emailNotVerified
+            }
+            
+            // Only fetch and set user profile if email is verified
+            currentUser = try await fetchUserProfile(userId: result.user.uid)
+            
         } catch let error as NSError {
             switch error.code {
             case AuthErrorCode.invalidEmail.rawValue:
@@ -158,6 +176,25 @@ class AuthenticationService: ObservableObject {
             currentUser = nil
         } catch {
             throw AuthError.signOutFailed(error.localizedDescription)
+        }
+    }
+    
+    func resendVerificationEmail() async throws {
+        guard let user = Auth.auth().currentUser else {
+            throw AuthError.userNotFound
+        }
+        try await user.sendEmailVerification()
+    }
+    
+    func refreshEmailVerificationStatus() async throws {
+        guard let user = Auth.auth().currentUser else {
+            throw AuthError.userNotFound
+        }
+        
+        try await user.reload()
+        if user.isEmailVerified {
+            // Just fetch and set the user profile if verified
+            currentUser = try await fetchUserProfile(userId: user.uid)
         }
     }
 }

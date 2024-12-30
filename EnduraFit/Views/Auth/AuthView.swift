@@ -10,6 +10,7 @@ struct AuthView: View {
     @State private var isLoading = false
     @State private var errorMessage: String?
     @State private var isRegistering = false
+    @State private var showingVerificationAlert = false
     
     var isValidEmail: Bool {
         let emailRegex = "[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,64}"
@@ -115,6 +116,30 @@ struct AuthView: View {
             }
             .navigationBarHidden(true)
         }
+        .alert("Verify Your Email", isPresented: $showingVerificationAlert) {
+            Button("OK") {
+                // Reset form and switch to sign in
+                isRegistering = false
+                email = ""
+                password = ""
+                name = ""
+                birthDate = Date()
+                gender = .preferNotToSay
+                errorMessage = nil
+            }
+            Button("Resend Email") {
+                Task {
+                    do {
+                        try await authService.resendVerificationEmail()
+                        errorMessage = "Verification email sent"
+                    } catch {
+                        errorMessage = error.localizedDescription
+                    }
+                }
+            }
+        } message: {
+            Text("Please check your email to verify your account before signing in. Don't forget to check your spam folder.")
+        }
     }
     
     private func handleAuth() {
@@ -149,9 +174,13 @@ struct AuthView: View {
                         birthDate: birthDate,
                         gender: gender
                     )
+                    showingVerificationAlert = true
                 } else {
                     try await authService.signIn(email: email, password: password)
                 }
+            } catch AuthError.emailNotVerified {
+                errorMessage = AuthError.emailNotVerified.errorDescription
+                showingVerificationAlert = true
             } catch {
                 if let authError = error as? AuthError {
                     errorMessage = authError.errorDescription
