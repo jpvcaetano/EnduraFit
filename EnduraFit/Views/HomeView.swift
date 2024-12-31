@@ -3,6 +3,7 @@ import SwiftUI
 struct HomeView: View {
     @StateObject private var viewModel = WorkoutPlanViewModel()
     @State private var showingPlanGenerator = false
+    @EnvironmentObject var workoutStore: WorkoutStore
     
     var body: some View {
         NavigationView {
@@ -30,6 +31,7 @@ struct HomeView: View {
             .navigationTitle("Home")
             .sheet(isPresented: $showingPlanGenerator, onDismiss: {
                 viewModel.reset()
+                workoutStore.reloadPlans()
             }) {
                 WorkoutPlanGeneratorView(viewModel: viewModel)
             }

@@ -6,38 +6,42 @@ struct WorkoutsView: View {
     var body: some View {
         NavigationView {
             List {
-                if workoutStore.savedWorkouts.isEmpty {
-                    Text("No saved workouts yet")
+                if workoutStore.savedPlans.isEmpty {
+                    Text("No workout plans yet")
                         .foregroundColor(.gray)
                 } else {
-                    ForEach(workoutStore.savedWorkouts) { workout in
-                        NavigationLink(destination: WorkoutDetailView(workout: workout)) {
-                            WorkoutRow(workout: workout)
+                    ForEach(workoutStore.savedPlans) { plan in
+                        NavigationLink(destination: WorkoutPlanView(plan: plan)) {
+                            WorkoutPlanRow(plan: plan)
                         }
                     }
-                    .onDelete(perform: workoutStore.deleteWorkout)
+                    .onDelete { indexSet in
+                        for index in indexSet {
+                            workoutStore.deletePlan(workoutStore.savedPlans[index])
+                        }
+                    }
                 }
             }
-            .navigationTitle("My Workouts")
+            .navigationTitle("My Workout Plans")
             .toolbar {
                 EditButton()
-                    .disabled(workoutStore.savedWorkouts.isEmpty)
+                    .disabled(workoutStore.savedPlans.isEmpty)
             }
         }
     }
 }
 
-struct WorkoutRow: View {
-    let workout: Workout
+struct WorkoutPlanRow: View {
+    let plan: WorkoutPlan
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text(workout.name)
+        VStack(alignment: .leading, spacing: 4) {
+            Text(plan.name)
                 .font(.headline)
-            Text("\(workout.exercises.count) exercises")
+            Text("\(plan.workouts.count) workouts • \(plan.duration.description)")
                 .font(.subheadline)
                 .foregroundColor(.secondary)
-            Text(workout.createdAt.formatted(date: .abbreviated, time: .shortened))
+            Text("Goals: \(plan.goals.map { $0.rawValue.capitalized }.joined(separator: ", "))")
                 .font(.caption)
                 .foregroundColor(.secondary)
         }

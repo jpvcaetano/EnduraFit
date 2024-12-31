@@ -54,8 +54,8 @@ struct ReviewPlanView: View {
                 Button(action: {
                     Task {
                         try? await viewModel.generateWorkoutPlan()
-                        if let workout = viewModel.generatedWorkout {
-                            workoutStore.addWorkout(workout)
+                        if let plan = viewModel.generatedPlan {
+                            workoutStore.addWorkoutPlan(plan)
                         }
                         dismiss()
                     }
