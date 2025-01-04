@@ -50,9 +50,4 @@ struct WorkoutPreferences: Codable {
     enum Weekday: String, Codable {
         case monday, tuesday, wednesday, thursday, friday, saturday, sunday
     }
-}
-
-struct TimeSlot: Codable {
-    var startTime: Date
-    var duration: TimeInterval
 } 

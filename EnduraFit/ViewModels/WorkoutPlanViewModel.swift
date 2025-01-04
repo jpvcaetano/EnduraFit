@@ -8,14 +8,13 @@ class WorkoutPlanViewModel: ObservableObject {
     @Published var selectedDays: Set<WorkoutPreferences.Weekday> = []
     @Published var desiredDuration: WorkoutPreferences.Duration = .thirty
     @Published var isGeneratingPlan = false
-    @Published var generatedWorkouts: [Workout] = []
     @Published var generatedPlan: WorkoutPlan?
     
     enum WorkoutPlanStep {
         case goals
         case location
-        case duration
         case availability
+        case duration
         case review
     }
     
@@ -38,9 +37,6 @@ class WorkoutPlanViewModel: ObservableObject {
             duration: desiredDuration,
             days: selectedDays
         )
-        
-        // Update generated workouts
-        generatedWorkouts = generatedPlan?.workouts ?? []
     }
     
     func reset() {
@@ -49,7 +45,6 @@ class WorkoutPlanViewModel: ObservableObject {
         selectedLocation = nil
         selectedDays.removeAll()
         desiredDuration = .thirty
-        generatedWorkouts.removeAll()
         isGeneratingPlan = false
         generatedPlan = nil
     }

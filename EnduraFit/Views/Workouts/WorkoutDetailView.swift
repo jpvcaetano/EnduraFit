@@ -11,9 +11,6 @@ struct WorkoutDetailView: View {
                     Text(workout.name)
                         .font(.largeTitle)
                         .bold()
-                    
-                    Text("Created \(workout.createdAt.formatted(date: .abbreviated, time: .shortened))")
-                        .foregroundColor(.secondary)
                 }
                 .padding(.horizontal)
                 
