@@ -32,21 +32,6 @@ struct AvailabilitySelectionView: View {
                             }
                         )
                     }
-                    
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Workout Duration")
-                            .font(.headline)
-                            .padding(.top)
-                        
-                        Picker("Duration", selection: $viewModel.desiredDuration) {
-                            ForEach(WorkoutPreferences.Duration.allCases, id: \.self) { duration in
-                                Text(duration.description)
-                                    .tag(duration)
-                            }
-                        }
-                        .pickerStyle(.segmented)
-                    }
-                    .padding()
                 }
                 .padding()
             }

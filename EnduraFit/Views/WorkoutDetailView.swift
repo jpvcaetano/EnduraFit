@@ -45,15 +45,27 @@ struct ExerciseCard: View {
                 .font(.title3)
                 .bold()
                 .lineLimit(1)
+                .frame(maxWidth: .infinity, alignment: .leading)
             
             VStack(alignment: .leading, spacing: 8) {
-                HStack(spacing: 20) {
-                    Label("\(exercise.sets) sets", systemImage: "number.square.fill")
-                        .frame(minWidth: 80, alignment: .leading)
-                    Label("\(exercise.reps) reps", systemImage: "figure.run")
-                        .frame(minWidth: 80, alignment: .leading)
-                    Label("\(Int(exercise.restTime))s rest", systemImage: "timer")
-                        .frame(minWidth: 80, alignment: .leading)
+                // Stats Grid
+                Grid(alignment: .leading, horizontalSpacing: 16) {
+                    GridRow {
+                        HStack(spacing: 4) {
+                            Image(systemName: "number.square.fill")
+                            Text("\(exercise.sets) sets")
+                        }
+                        
+                        HStack(spacing: 4) {
+                            Image(systemName: "figure.run")
+                            Text("\(exercise.reps) reps")
+                        }
+                        
+                        HStack(spacing: 4) {
+                            Image(systemName: "timer")
+                            Text("\(Int(exercise.restTime))s rest")
+                        }
+                    }
                 }
                 .font(.subheadline)
                 .foregroundColor(.secondary)
@@ -64,7 +76,7 @@ struct ExerciseCard: View {
             }
         }
         .padding()
-        .frame(maxWidth: .infinity)
+        .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color(.systemGray6))
         .cornerRadius(12)
         .padding(.horizontal)
