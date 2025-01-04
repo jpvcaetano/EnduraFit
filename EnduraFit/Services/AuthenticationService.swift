@@ -2,53 +2,18 @@ import Foundation
 import FirebaseAuth
 import FirebaseFirestore
 
-enum AuthError: LocalizedError {
-    case signUpFailed(String)
-    case signInFailed(String)
-    case signOutFailed(String)
-    case invalidEmail
-    case weakPassword
-    case emailAlreadyInUse
-    case userNotFound
-    case wrongPassword
-    case emptyFields
-    case networkError
-    case emailNotVerified
-    
-    var errorDescription: String? {
-        switch self {
-        case .signUpFailed(let message),
-             .signInFailed(let message),
-             .signOutFailed(let message):
-            return message
-        case .invalidEmail:
-            return "Please enter a valid email address"
-        case .weakPassword:
-            return "Password must be at least 6 characters long"
-        case .emailAlreadyInUse:
-            return "An account with this email already exists"
-        case .userNotFound:
-            return "No account found with this email"
-        case .wrongPassword:
-            return "Incorrect password"
-        case .emptyFields:
-            return "Please fill in all fields"
-        case .networkError:
-            return "Network error. Please check your connection"
-        case .emailNotVerified:
-            return "Please verify your email address before signing in"
-        }
-    }
-}
-
 @MainActor
 class AuthenticationService: ObservableObject {
     @Published var currentUser: User?
     @Published var isInitializing = true
     
     private let db = Firestore.firestore()
+    private let errorHandler: ErrorHandler
+    private var stateListener: AuthStateDidChangeListenerHandle?
     
-    init() {
+    init(errorHandler: ErrorHandler) {
+        self.errorHandler = errorHandler
+        
         currentUser = Auth.auth().currentUser.flatMap { user in
             guard user.isEmailVerified else { return nil }
             return User(
@@ -58,13 +23,18 @@ class AuthenticationService: ObservableObject {
             )
         }
         
-        Auth.auth().addStateDidChangeListener { [weak self] _, user in
+        stateListener = Auth.auth().addStateDidChangeListener { [weak self] _, user in
             guard let self = self else { return }
             
             Task {
                 if let user = user {
                     if user.isEmailVerified {
-                        self.currentUser = try? await self.fetchUserProfile(userId: user.uid)
+                        do {
+                            self.currentUser = try await self.fetchUserProfile(userId: user.uid)
+                        } catch {
+                            await self.errorHandler.handle(error)
+                            self.currentUser = nil
+                        }
                     } else {
                         self.currentUser = nil
                     }
@@ -73,6 +43,12 @@ class AuthenticationService: ObservableObject {
                 }
                 self.isInitializing = false
             }
+        }
+    }
+    
+    deinit {
+        if let listener = stateListener {
+            Auth.auth().removeStateDidChangeListener(listener)
         }
     }
     
@@ -111,18 +87,21 @@ class AuthenticationService: ObservableObject {
             currentUser = nil
             
         } catch let error as NSError {
+            let authError: AuthError
             switch error.code {
             case AuthErrorCode.invalidEmail.rawValue:
-                throw AuthError.invalidEmail
+                authError = .invalidEmail
             case AuthErrorCode.weakPassword.rawValue:
-                throw AuthError.weakPassword
+                authError = .weakPassword
             case AuthErrorCode.emailAlreadyInUse.rawValue:
-                throw AuthError.emailAlreadyInUse
+                authError = .emailAlreadyInUse
             case AuthErrorCode.networkError.rawValue:
-                throw AuthError.networkError
+                authError = .networkError
             default:
-                throw AuthError.signUpFailed(error.localizedDescription)
+                authError = .signUpFailed(error.localizedDescription)
             }
+            await errorHandler.handle(authError)
+            throw authError
         }
     }
     
@@ -148,25 +127,30 @@ class AuthenticationService: ObservableObject {
             guard result.user.isEmailVerified else {
                 // Optionally resend verification email
                 try await result.user.sendEmailVerification()
-                throw AuthError.emailNotVerified
+                let error = AuthError.emailNotVerified
+                await errorHandler.handle(error)
+                throw error
             }
             
             // Only fetch and set user profile if email is verified
             currentUser = try await fetchUserProfile(userId: result.user.uid)
             
         } catch let error as NSError {
+            let authError: AuthError
             switch error.code {
             case AuthErrorCode.invalidEmail.rawValue:
-                throw AuthError.invalidEmail
+                authError = .invalidEmail
             case AuthErrorCode.wrongPassword.rawValue:
-                throw AuthError.wrongPassword
+                authError = .wrongPassword
             case AuthErrorCode.userNotFound.rawValue:
-                throw AuthError.userNotFound
+                authError = .userNotFound
             case AuthErrorCode.networkError.rawValue:
-                throw AuthError.networkError
+                authError = .networkError
             default:
-                throw AuthError.signInFailed(error.localizedDescription)
+                authError = .signInFailed(error.localizedDescription)
             }
+            await errorHandler.handle(authError)
+            throw authError
         }
     }
     
@@ -175,20 +159,34 @@ class AuthenticationService: ObservableObject {
             try Auth.auth().signOut()
             currentUser = nil
         } catch {
-            throw AuthError.signOutFailed(error.localizedDescription)
+            let authError = AuthError.signOutFailed(error.localizedDescription)
+            Task {
+                await errorHandler.handle(authError)
+            }
+            throw authError
         }
     }
     
     func resendVerificationEmail() async throws {
-        guard let user = Auth.auth().currentUser else {
-            throw AuthError.userNotFound
+        do {
+            guard let user = Auth.auth().currentUser else {
+                let error = AuthError.userNotFound
+                await errorHandler.handle(error)
+                throw error
+            }
+            try await user.sendEmailVerification()
+        } catch {
+            let authError = AuthError.signUpFailed(error.localizedDescription)
+            await errorHandler.handle(authError)
+            throw authError
         }
-        try await user.sendEmailVerification()
     }
     
     func refreshEmailVerificationStatus() async throws {
         guard let user = Auth.auth().currentUser else {
-            throw AuthError.userNotFound
+            let error = AuthError.userNotFound
+            await errorHandler.handle(error)
+            throw error
         }
         
         try await user.reload()

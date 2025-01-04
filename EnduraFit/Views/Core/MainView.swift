@@ -8,13 +8,12 @@
 import SwiftUI
 
 struct MainView: View {
-    @EnvironmentObject var authService: AuthenticationService
-    @EnvironmentObject var workoutStore: WorkoutStore
     @State private var selectedTab = 0
+    let openAIService: OpenAIService
     
     var body: some View {
         TabView(selection: $selectedTab) {
-            HomeView(openAIService: OpenAIService(apiKey: Config.openAIKey), selectedTab: $selectedTab)
+            HomeView(openAIService: openAIService, selectedTab: $selectedTab)
                 .tabItem {
                     Label("Home", systemImage: "house")
                 }
@@ -33,5 +32,12 @@ struct MainView: View {
                 .tag(2)
         }
     }
+}
+
+#Preview {
+    MainView(openAIService: OpenAIService(apiKey: "preview-key", errorHandler: ErrorHandler()))
+        .environmentObject(AuthenticationService(errorHandler: ErrorHandler()))
+        .environmentObject(WorkoutStore(userId: "preview-id", errorHandler: ErrorHandler()))
+        .environmentObject(ErrorHandler())
 }
 

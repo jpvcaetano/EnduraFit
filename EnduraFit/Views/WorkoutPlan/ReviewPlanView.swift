@@ -5,6 +5,7 @@ struct ReviewPlanView: View {
     @EnvironmentObject var workoutStore: WorkoutStore
     @Environment(\.dismiss) var dismiss
     @Binding var selectedTab: Int
+    @State private var error: Error?
     
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
@@ -57,7 +58,7 @@ struct ReviewPlanView: View {
                         do {
                             try await viewModel.generateWorkoutPlan()
                             if let plan = viewModel.generatedPlan {
-                                workoutStore.addWorkoutPlan(plan)
+                                try await workoutStore.addWorkoutPlan(plan)
                                 dismiss()
                                 // Add a slight delay to ensure the sheet is dismissed before navigating
                                 try await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
@@ -65,7 +66,7 @@ struct ReviewPlanView: View {
                                 selectedTab = 1 // Switch to Workouts tab
                             }
                         } catch {
-                            print("Error generating plan: \(error)")
+                            self.error = error
                         }
                     }
                 }) {
@@ -89,6 +90,17 @@ struct ReviewPlanView: View {
                 .disabled(viewModel.isGeneratingPlan)
             }
             .padding()
+        }
+        .alert("Error", isPresented: .constant(error != nil)) {
+            Button("OK") {
+                error = nil
+            }
+        } message: {
+            if let error = error as? AppError {
+                Text(error.errorDescription ?? "An unknown error occurred")
+            } else {
+                Text(error?.localizedDescription ?? "An unknown error occurred")
+            }
         }
     }
 }
@@ -114,7 +126,7 @@ struct PreferenceSection<Content: View>: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding()
-        .background(Color(.systemBackground))
+        .background(Color(.systemGray6))
         .cornerRadius(10)
     }
 } 

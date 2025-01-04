@@ -38,7 +38,7 @@ struct AuthView: View {
                                 .textContentType(.emailAddress)
                                 .autocapitalization(.none)
                                 .keyboardType(.emailAddress)
-                                .onChange(of: email) { _ in
+                                .onChange(of: email) { _, _ in
                                     errorMessage = nil
                                 }
                             
@@ -53,7 +53,7 @@ struct AuthView: View {
                             SecureField("Password", text: $password)
                                 .textFieldStyle(RoundedBorderTextFieldStyle())
                                 .textContentType(isRegistering ? .newPassword : .password)
-                                .onChange(of: password) { _ in
+                                .onChange(of: password) { _, _ in
                                     errorMessage = nil
                                 }
                             

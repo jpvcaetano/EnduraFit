@@ -4,6 +4,7 @@ struct HomeView: View {
     @StateObject private var viewModel: WorkoutPlanViewModel
     @State private var showingPlanGenerator = false
     @EnvironmentObject var workoutStore: WorkoutStore
+    @EnvironmentObject var errorHandler: ErrorHandler
     @Binding var selectedTab: Int
     
     init(openAIService: OpenAIService, selectedTab: Binding<Int>) {
@@ -48,6 +49,14 @@ struct HomeView: View {
 }
 
 #Preview {
-    HomeView(openAIService: OpenAIService(apiKey: "preview-key"), selectedTab: .constant(0))
+    HomeView(
+        openAIService: OpenAIService(
+            apiKey: "preview-key",
+            errorHandler: ErrorHandler()
+        ),
+        selectedTab: .constant(0)
+    )
+    .environmentObject(ErrorHandler())
+    .environmentObject(WorkoutStore(userId: "preview-id", errorHandler: ErrorHandler()))
 }
 

@@ -10,21 +10,43 @@ import Firebase
 
 @main
 struct EnduraFitApp: App {
-    @StateObject private var authService = AuthenticationService()
+    // Initialize error handler first
+    private let errorHandler: ErrorHandler
+    private let openAIService: OpenAIService
+    @StateObject private var authService: AuthenticationService
     
     init() {
+        // Initialize Firebase
         FirebaseApp.configure()
+        
+        // Create error handler
+        let errorHandler = ErrorHandler()
+        self.errorHandler = errorHandler
+        
+        // Create OpenAI service
+        self.openAIService = OpenAIService(
+            apiKey: Config.openAIApiKey,
+            errorHandler: errorHandler
+        )
+        
+        // Create auth service
+        let auth = AuthenticationService(errorHandler: errorHandler)
+        _authService = StateObject(wrappedValue: auth)
     }
     
     var body: some Scene {
         WindowGroup {
             if let user = authService.currentUser {
-                MainView()
+                MainView(openAIService: openAIService)
                     .environmentObject(authService)
-                    .environmentObject(WorkoutStore(userId: user.id))
+                    .environmentObject(WorkoutStore(userId: user.id, errorHandler: errorHandler))
+                    .environmentObject(errorHandler)
+                    .handleErrors(errorHandler)
             } else {
                 AuthView()
                     .environmentObject(authService)
+                    .environmentObject(errorHandler)
+                    .handleErrors(errorHandler)
             }
         }
     }
