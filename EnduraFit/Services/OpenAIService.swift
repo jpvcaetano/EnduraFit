@@ -64,7 +64,7 @@ class OpenAIService {
         ]
         
         let requestBody: [String: Any] = [
-            "model": "gpt-4",
+            "model": "gpt-4o",
             "messages": messages,
             "temperature": 0.2
         ]
