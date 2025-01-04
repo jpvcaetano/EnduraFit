@@ -105,11 +105,16 @@ class OpenAIService {
                 )
             }
             
+            // Parse the day string to Weekday enum
+            let dayString = (workoutData["day"] as? String ?? "").lowercased()
+            let day = WorkoutPreferences.Weekday(rawValue: dayString) ?? .monday // Default to Monday if invalid
+            
             return Workout(
                 id: UUID().uuidString,
                 name: workoutData["name"] as? String ?? "",
                 exercises: exercises,
-                createdAt: Date()
+                createdAt: Date(),
+                day: day
             )
         }
         

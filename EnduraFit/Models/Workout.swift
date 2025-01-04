@@ -6,6 +6,7 @@ struct Workout: Identifiable, Codable {
     let exercises: [Exercise]
     let createdAt: Date
     var completedAt: Date?
+    let day: WorkoutPreferences.Weekday
     
     struct Exercise: Identifiable, Codable {
         let id: String

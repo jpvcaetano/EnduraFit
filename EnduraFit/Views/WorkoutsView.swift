@@ -41,7 +41,7 @@ struct WorkoutPlanRow: View {
         VStack(alignment: .leading, spacing: 4) {
             Text(plan.name)
                 .font(.headline)
-            Text("\(plan.selectedDays.map { $0.rawValue.capitalized }.joined(separator: ", ")) • \(plan.duration.description)")
+            Text("\(plan.selectedDays.orderedWeekdays.map { $0.rawValue.capitalized }.joined(separator: ", "))")
                 .font(.subheadline)
                 .foregroundColor(.secondary)
             Text("Goals: \(plan.goals.map { $0.rawValue.capitalized }.joined(separator: ", "))")
