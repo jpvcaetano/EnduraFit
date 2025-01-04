@@ -9,29 +9,28 @@ import SwiftUI
 
 struct MainView: View {
     @EnvironmentObject var authService: AuthenticationService
+    @EnvironmentObject var workoutStore: WorkoutStore
+    @State private var selectedTab = 0
     
     var body: some View {
-        Group {
-            if authService.currentUser != nil {
-                TabView {
-                    HomeView()
-                        .tabItem {
-                            Label("Home", systemImage: "house.fill")
-                        }
-                    
-                    WorkoutsView()
-                        .tabItem {
-                            Label("Workouts", systemImage: "figure.run")
-                        }
-                    
-                    ProfileView()
-                        .tabItem {
-                            Label("Profile", systemImage: "person.fill")
-                        }
+        TabView(selection: $selectedTab) {
+            HomeView(openAIService: OpenAIService(apiKey: Config.openAIKey), selectedTab: $selectedTab)
+                .tabItem {
+                    Label("Home", systemImage: "house")
                 }
-            } else {
-                AuthView()
-            }
+                .tag(0)
+            
+            WorkoutsView()
+                .tabItem {
+                    Label("Workouts", systemImage: "figure.run")
+                }
+                .tag(1)
+            
+            ProfileView()
+                .tabItem {
+                    Label("Profile", systemImage: "person")
+                }
+                .tag(2)
         }
     }
 }

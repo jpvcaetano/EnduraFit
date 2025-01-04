@@ -19,53 +19,28 @@ class WorkoutPlanViewModel: ObservableObject {
         case review
     }
     
+    private let openAIService: OpenAIService
+    
+    init(openAIService: OpenAIService) {
+        self.openAIService = openAIService
+    }
+    
     func generateWorkoutPlan() async throws {
         isGeneratingPlan = true
         defer { isGeneratingPlan = false }
         
-        // Clear previous workouts
-        generatedWorkouts.removeAll()
+        guard let location = selectedLocation else { return }
         
-        // Generate a workout for each selected day
-        for day in selectedDays.sorted(by: { $0.rawValue < $1.rawValue }) {
-            // TODO: Implement OpenAI API call with day-specific variations
-            // For now, return mock data with day in the name
-            let workout = Workout(
-                id: UUID().uuidString,
-                name: "\(day.rawValue.capitalized) Workout",
-                exercises: [
-                    .init(
-                        id: UUID().uuidString,
-                        name: "Push-ups",
-                        sets: 3,
-                        reps: 12,
-                        restTime: 60,
-                        description: "Start in a plank position and lower your body until your chest nearly touches the ground."
-                    ),
-                    .init(
-                        id: UUID().uuidString,
-                        name: "Pull-ups",
-                        sets: 3,
-                        reps: 12,
-                        restTime: 60,
-                        description: "Start in a plank position and lower your body until your chest nearly touches the ground."
-                    )
-                ],
-                createdAt: Date()
-            )
-            generatedWorkouts.append(workout)
-        }
-        
-        // Create the workout plan
-        generatedPlan = WorkoutPlan(
-            id: UUID().uuidString,
-            name: "Weekly Workout Plan",
-            workouts: generatedWorkouts,
-            createdAt: Date(),
+        // Generate the complete plan
+        generatedPlan = try await openAIService.generateWorkoutPlan(
             goals: selectedGoals,
-            location: selectedLocation ?? .home,
-            duration: desiredDuration
+            location: location,
+            duration: desiredDuration,
+            days: selectedDays
         )
+        
+        // Update generated workouts
+        generatedWorkouts = generatedPlan?.workouts ?? []
     }
     
     func reset() {

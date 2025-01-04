@@ -1,9 +1,15 @@
 import SwiftUI
 
 struct HomeView: View {
-    @StateObject private var viewModel = WorkoutPlanViewModel()
+    @StateObject private var viewModel: WorkoutPlanViewModel
     @State private var showingPlanGenerator = false
     @EnvironmentObject var workoutStore: WorkoutStore
+    @Binding var selectedTab: Int
+    
+    init(openAIService: OpenAIService, selectedTab: Binding<Int>) {
+        _viewModel = StateObject(wrappedValue: WorkoutPlanViewModel(openAIService: openAIService))
+        _selectedTab = selectedTab
+    }
     
     var body: some View {
         NavigationView {
@@ -31,15 +37,17 @@ struct HomeView: View {
             .navigationTitle("Home")
             .sheet(isPresented: $showingPlanGenerator, onDismiss: {
                 viewModel.reset()
-                workoutStore.reloadPlans()
+                Task {
+                    await workoutStore.reloadPlans()
+                }
             }) {
-                WorkoutPlanGeneratorView(viewModel: viewModel)
+                WorkoutPlanGeneratorView(viewModel: viewModel, selectedTab: $selectedTab)
             }
         }
     }
 }
 
 #Preview {
-    HomeView()
+    HomeView(openAIService: OpenAIService(apiKey: "preview-key"), selectedTab: .constant(0))
 }
 

@@ -4,7 +4,7 @@ struct WorkoutsView: View {
     @EnvironmentObject var workoutStore: WorkoutStore
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             List {
                 if workoutStore.savedPlans.isEmpty {
                     Text("No workout plans yet")
@@ -27,6 +27,9 @@ struct WorkoutsView: View {
                 EditButton()
                     .disabled(workoutStore.savedPlans.isEmpty)
             }
+            .navigationDestination(item: $workoutStore.selectedPlan) { plan in
+                WorkoutPlanView(plan: plan)
+            }
         }
     }
 }
@@ -38,7 +41,7 @@ struct WorkoutPlanRow: View {
         VStack(alignment: .leading, spacing: 4) {
             Text(plan.name)
                 .font(.headline)
-            Text("\(plan.workouts.count) workouts • \(plan.duration.description)")
+            Text("\(plan.selectedDays.map { $0.rawValue.capitalized }.joined(separator: ", ")) • \(plan.duration.description)")
                 .font(.subheadline)
                 .foregroundColor(.secondary)
             Text("Goals: \(plan.goals.map { $0.rawValue.capitalized }.joined(separator: ", "))")

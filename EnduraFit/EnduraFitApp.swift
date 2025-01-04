@@ -6,29 +6,25 @@
 //
 
 import SwiftUI
+import Firebase
 
 @main
 struct EnduraFitApp: App {
     @StateObject private var authService = AuthenticationService()
-    @StateObject private var workoutStore: WorkoutStore
     
     init() {
-        FirebaseConfig.configure()
-        let authService = AuthenticationService()
-        _authService = StateObject(wrappedValue: authService)
-        _workoutStore = StateObject(wrappedValue: WorkoutStore(authService: authService))
+        FirebaseApp.configure()
     }
     
     var body: some Scene {
         WindowGroup {
-            Group {
-                if authService.isInitializing {
-                    ProgressView("Loading...")
-                } else {
-                    MainView()
-                        .environmentObject(workoutStore)
-                        .environmentObject(authService)
-                }
+            if let user = authService.currentUser {
+                MainView()
+                    .environmentObject(authService)
+                    .environmentObject(WorkoutStore(userId: user.id))
+            } else {
+                AuthView()
+                    .environmentObject(authService)
             }
         }
     }

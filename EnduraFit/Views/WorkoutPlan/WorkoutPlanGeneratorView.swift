@@ -3,6 +3,7 @@ import SwiftUI
 struct WorkoutPlanGeneratorView: View {
     @ObservedObject var viewModel: WorkoutPlanViewModel
     @Environment(\.dismiss) var dismiss
+    @Binding var selectedTab: Int
     
     var body: some View {
         NavigationView {
@@ -17,7 +18,7 @@ struct WorkoutPlanGeneratorView: View {
                 case .availability:
                     AvailabilitySelectionView(viewModel: viewModel)
                 case .review:
-                    ReviewPlanView(viewModel: viewModel)
+                    ReviewPlanView(viewModel: viewModel, selectedTab: $selectedTab)
                 }
             }
             .navigationTitle("Create Workout Plan")

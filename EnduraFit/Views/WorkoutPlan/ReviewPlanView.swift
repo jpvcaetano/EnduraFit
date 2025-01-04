@@ -4,6 +4,7 @@ struct ReviewPlanView: View {
     @ObservedObject var viewModel: WorkoutPlanViewModel
     @EnvironmentObject var workoutStore: WorkoutStore
     @Environment(\.dismiss) var dismiss
+    @Binding var selectedTab: Int
     
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
@@ -53,21 +54,39 @@ struct ReviewPlanView: View {
                 
                 Button(action: {
                     Task {
-                        try? await viewModel.generateWorkoutPlan()
-                        if let plan = viewModel.generatedPlan {
-                            workoutStore.addWorkoutPlan(plan)
+                        do {
+                            try await viewModel.generateWorkoutPlan()
+                            if let plan = viewModel.generatedPlan {
+                                workoutStore.addWorkoutPlan(plan)
+                                dismiss()
+                                // Add a slight delay to ensure the sheet is dismissed before navigating
+                                try await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
+                                workoutStore.selectedPlan = plan
+                                selectedTab = 1 // Switch to Workouts tab
+                            }
+                        } catch {
+                            print("Error generating plan: \(error)")
                         }
-                        dismiss()
                     }
                 }) {
-                    Text("Generate Plan")
-                        .font(.headline)
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.blue)
-                        .cornerRadius(10)
+                    if viewModel.isGeneratingPlan {
+                        ProgressView()
+                            .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color.blue)
+                            .cornerRadius(10)
+                    } else {
+                        Text("Generate Plan")
+                            .font(.headline)
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color.blue)
+                            .cornerRadius(10)
+                    }
                 }
+                .disabled(viewModel.isGeneratingPlan)
             }
             .padding()
         }
