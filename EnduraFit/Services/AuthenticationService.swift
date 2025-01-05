@@ -156,6 +156,36 @@ class AuthenticationService: ObservableObject {
         }
     }
     
+    func deleteAccount() async throws {
+        guard let user = Auth.auth().currentUser else {
+            throw AuthError.userNotFound
+        }
+
+        do {
+            // First delete all workout plans in the subcollection
+            let plansSnapshot = try await db.collection("users")
+                .document(user.uid)
+                .collection("workoutPlans")
+                .getDocuments()
+
+            // Delete each workout plan document
+            for document in plansSnapshot.documents {
+                try await document.reference.delete()
+            }
+
+            // Then delete the user document
+            try await db.collection("users")
+                .document(user.uid)
+                .delete()
+
+            // Finally delete the Firebase Auth account
+            try await user.delete()
+            currentUser = nil
+        } catch {
+            throw AuthError.signOutFailed("Failed to delete account: \(error.localizedDescription)")
+        }
+    }
+    
     func resendVerificationEmail() async throws {
         guard let user = Auth.auth().currentUser else {
             throw AuthError.userNotFound
@@ -206,11 +236,11 @@ class AuthenticationService: ObservableObject {
         // Try to fetch existing user profile
         do {
             currentUser = try await fetchUserProfile(userId: firebaseUser.uid)
-            // If we successfully fetched the profile, don't show profile completion
             needsProfileCompletion = false
             temporaryGoogleUser = nil
         } catch {
-            // If user profile doesn't exist, store temporary user info and set needsProfileCompletion flag
+            // Store temporary user info and set needsProfileCompletion flag
+            // This is not an error, just an expected state for new Google users
             temporaryGoogleUser = (
                 id: firebaseUser.uid,
                 name: firebaseUser.displayName ?? "",
