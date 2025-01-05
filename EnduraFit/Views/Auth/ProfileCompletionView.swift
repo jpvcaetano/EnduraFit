@@ -10,6 +10,11 @@ struct ProfileCompletionView: View {
     var body: some View {
         NavigationView {
             Form {
+                Section {
+                    Text("To create personalized workout plans that match your needs, we need a few more details about you.")
+                        .foregroundColor(.secondary)
+                }
+                
                 Section("Complete Your Profile") {
                     DatePicker("Birth Date",
                              selection: $birthDate,
