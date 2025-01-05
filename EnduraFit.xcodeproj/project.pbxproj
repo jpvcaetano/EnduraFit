@@ -10,6 +10,8 @@
 		3A6BF1172D21760D00BD6CFE /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 3A6BF1162D21760D00BD6CFE /* FirebaseAuth */; };
 		3A6BF1192D21760D00BD6CFE /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = 3A6BF1182D21760D00BD6CFE /* FirebaseCore */; };
 		3A6BF11E2D21935000BD6CFE /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = 3A6BF11D2D21935000BD6CFE /* FirebaseFirestore */; };
+		3A6BF1992D29CC1600BD6CFE /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = 3A6BF1982D29CC1600BD6CFE /* GoogleSignIn */; };
+		3A6BF19B2D29CC1600BD6CFE /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 3A6BF19A2D29CC1600BD6CFE /* GoogleSignInSwift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -35,9 +37,22 @@
 		3AE047C92D061F870078C8FD /* EnduraFitUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = EnduraFitUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		3A037CA62D2AB1360030B91F /* Exceptions for "EnduraFit" folder in "EnduraFit" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 3AE047AE2D061F7A0078C8FD /* EnduraFit */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		3AE047B12D061F7A0078C8FD /* EnduraFit */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				3A037CA62D2AB1360030B91F /* Exceptions for "EnduraFit" folder in "EnduraFit" target */,
+			);
 			path = EnduraFit;
 			sourceTree = "<group>";
 		};
@@ -58,7 +73,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3A6BF19B2D29CC1600BD6CFE /* GoogleSignInSwift in Frameworks */,
 				3A6BF1192D21760D00BD6CFE /* FirebaseCore in Frameworks */,
+				3A6BF1992D29CC1600BD6CFE /* GoogleSignIn in Frameworks */,
 				3A6BF1172D21760D00BD6CFE /* FirebaseAuth in Frameworks */,
 				3A6BF11E2D21935000BD6CFE /* FirebaseFirestore in Frameworks */,
 			);
@@ -124,6 +141,8 @@
 				3A6BF1162D21760D00BD6CFE /* FirebaseAuth */,
 				3A6BF1182D21760D00BD6CFE /* FirebaseCore */,
 				3A6BF11D2D21935000BD6CFE /* FirebaseFirestore */,
+				3A6BF1982D29CC1600BD6CFE /* GoogleSignIn */,
+				3A6BF19A2D29CC1600BD6CFE /* GoogleSignInSwift */,
 			);
 			productName = EnduraFit;
 			productReference = 3AE047AF2D061F7A0078C8FD /* EnduraFit.app */;
@@ -209,6 +228,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				3A6BF1152D21760D00BD6CFE /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+				3A6BF1972D29CC1600BD6CFE /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 3AE047B02D061F7A0078C8FD /* Products */;
@@ -414,6 +434,7 @@
 				DEVELOPMENT_TEAM = 7L6N79765L;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = EnduraFit/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -443,6 +464,7 @@
 				DEVELOPMENT_TEAM = 7L6N79765L;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = EnduraFit/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -583,6 +605,14 @@
 				minimumVersion = 11.6.0;
 			};
 		};
+		3A6BF1972D29CC1600BD6CFE /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/google/GoogleSignIn-iOS";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 8.0.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -600,6 +630,16 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 3A6BF1152D21760D00BD6CFE /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseFirestore;
+		};
+		3A6BF1982D29CC1600BD6CFE /* GoogleSignIn */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 3A6BF1972D29CC1600BD6CFE /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
+			productName = GoogleSignIn;
+		};
+		3A6BF19A2D29CC1600BD6CFE /* GoogleSignInSwift */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 3A6BF1972D29CC1600BD6CFE /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
+			productName = GoogleSignInSwift;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

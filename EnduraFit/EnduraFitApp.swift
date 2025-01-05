@@ -7,6 +7,7 @@
 
 import SwiftUI
 import Firebase
+import GoogleSignIn
 
 @main
 struct EnduraFitApp: App {
@@ -36,17 +37,27 @@ struct EnduraFitApp: App {
     
     var body: some Scene {
         WindowGroup {
-            if let user = authService.currentUser {
-                MainView(openAIService: openAIService)
-                    .environmentObject(authService)
-                    .environmentObject(WorkoutStore(userId: user.id, errorHandler: errorHandler))
-                    .environmentObject(errorHandler)
-                    .handleErrors(errorHandler)
-            } else {
-                AuthView()
-                    .environmentObject(authService)
-                    .environmentObject(errorHandler)
-                    .handleErrors(errorHandler)
+            Group {
+                if authService.needsProfileCompletion {
+                    ProfileCompletionView()
+                        .environmentObject(authService)
+                        .environmentObject(errorHandler)
+                        .handleErrors(errorHandler)
+                } else if let user = authService.currentUser {
+                    MainView(openAIService: openAIService)
+                        .environmentObject(authService)
+                        .environmentObject(WorkoutStore(userId: user.id, errorHandler: errorHandler))
+                        .environmentObject(errorHandler)
+                        .handleErrors(errorHandler)
+                } else {
+                    AuthView()
+                        .environmentObject(authService)
+                        .environmentObject(errorHandler)
+                        .handleErrors(errorHandler)
+                }
+            }
+            .onOpenURL { url in
+                GIDSignIn.sharedInstance.handle(url)
             }
         }
     }
