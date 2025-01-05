@@ -1,15 +1,20 @@
 import Foundation
+import FirebaseCore
 import FirebaseAuth
 import FirebaseFirestore
+import GoogleSignIn
+import GoogleSignInSwift
 
 @MainActor
 class AuthenticationService: ObservableObject {
     @Published var currentUser: User?
     @Published var isInitializing = true
+    @Published var needsProfileCompletion = false
     
     private let db = Firestore.firestore()
     private let errorHandler: ErrorHandler
     private var stateListener: AuthStateDidChangeListenerHandle?
+    private var temporaryGoogleUser: (id: String, name: String, email: String)?
     
     init(errorHandler: ErrorHandler) {
         self.errorHandler = errorHandler
@@ -28,14 +33,10 @@ class AuthenticationService: ObservableObject {
             
             Task {
                 if let user = user {
-                    if user.isEmailVerified {
-                        do {
-                            self.currentUser = try await self.fetchUserProfile(userId: user.uid)
-                        } catch {
-                            await self.errorHandler.handle(error)
-                            self.currentUser = nil
-                        }
-                    } else {
+                    do {
+                        self.currentUser = try await self.fetchUserProfile(userId: user.uid)
+                    } catch {
+                        await self.errorHandler.handle(error)
                         self.currentUser = nil
                     }
                 } else {
@@ -87,21 +88,18 @@ class AuthenticationService: ObservableObject {
             currentUser = nil
             
         } catch let error as NSError {
-            let authError: AuthError
             switch error.code {
             case AuthErrorCode.invalidEmail.rawValue:
-                authError = .invalidEmail
+                throw AuthError.invalidEmail
             case AuthErrorCode.weakPassword.rawValue:
-                authError = .weakPassword
+                throw AuthError.weakPassword
             case AuthErrorCode.emailAlreadyInUse.rawValue:
-                authError = .emailAlreadyInUse
+                throw AuthError.emailAlreadyInUse
             case AuthErrorCode.networkError.rawValue:
-                authError = .networkError
+                throw AuthError.networkError
             default:
-                authError = .signUpFailed(error.localizedDescription)
+                throw AuthError.signUpFailed(error.localizedDescription)
             }
-            await errorHandler.handle(authError)
-            throw authError
         }
     }
     
@@ -127,30 +125,25 @@ class AuthenticationService: ObservableObject {
             guard result.user.isEmailVerified else {
                 // Optionally resend verification email
                 try await result.user.sendEmailVerification()
-                let error = AuthError.emailNotVerified
-                await errorHandler.handle(error)
-                throw error
+                throw AuthError.emailNotVerified
             }
             
             // Only fetch and set user profile if email is verified
             currentUser = try await fetchUserProfile(userId: result.user.uid)
             
         } catch let error as NSError {
-            let authError: AuthError
             switch error.code {
             case AuthErrorCode.invalidEmail.rawValue:
-                authError = .invalidEmail
+                throw AuthError.invalidEmail
             case AuthErrorCode.wrongPassword.rawValue:
-                authError = .wrongPassword
+                throw AuthError.wrongPassword
             case AuthErrorCode.userNotFound.rawValue:
-                authError = .userNotFound
+                throw AuthError.userNotFound
             case AuthErrorCode.networkError.rawValue:
-                authError = .networkError
+                throw AuthError.networkError
             default:
-                authError = .signInFailed(error.localizedDescription)
+                throw AuthError.signInFailed(error.localizedDescription)
             }
-            await errorHandler.handle(authError)
-            throw authError
         }
     }
     
@@ -159,34 +152,20 @@ class AuthenticationService: ObservableObject {
             try Auth.auth().signOut()
             currentUser = nil
         } catch {
-            let authError = AuthError.signOutFailed(error.localizedDescription)
-            Task {
-                await errorHandler.handle(authError)
-            }
-            throw authError
+            throw AuthError.signOutFailed(error.localizedDescription)
         }
     }
     
     func resendVerificationEmail() async throws {
-        do {
-            guard let user = Auth.auth().currentUser else {
-                let error = AuthError.userNotFound
-                await errorHandler.handle(error)
-                throw error
-            }
-            try await user.sendEmailVerification()
-        } catch {
-            let authError = AuthError.signUpFailed(error.localizedDescription)
-            await errorHandler.handle(authError)
-            throw authError
+        guard let user = Auth.auth().currentUser else {
+            throw AuthError.userNotFound
         }
+        try await user.sendEmailVerification()
     }
     
     func refreshEmailVerificationStatus() async throws {
         guard let user = Auth.auth().currentUser else {
-            let error = AuthError.userNotFound
-            await errorHandler.handle(error)
-            throw error
+            throw AuthError.userNotFound
         }
         
         try await user.reload()
@@ -194,6 +173,86 @@ class AuthenticationService: ObservableObject {
             // Just fetch and set the user profile if verified
             currentUser = try await fetchUserProfile(userId: user.uid)
         }
+    }
+    
+    func signInWithGoogle() async throws {
+        guard let clientID = FirebaseApp.app()?.options.clientID else {
+            throw AuthError.signInFailed("Failed to configure authentication")
+        }
+        
+        guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+              let window = windowScene.windows.first,
+              let rootViewController = window.rootViewController else {
+            throw AuthError.signInFailed("Failed to present sign in")
+        }
+        
+        let config = GIDConfiguration(clientID: clientID)
+        GIDSignIn.sharedInstance.configuration = config
+        
+        let result = try await GIDSignIn.sharedInstance.signIn(withPresenting: rootViewController)
+        
+        guard let idToken = result.user.idToken?.tokenString else {
+            throw AuthError.signInFailed("Invalid credentials")
+        }
+        
+        let credential = GoogleAuthProvider.credential(
+            withIDToken: idToken,
+            accessToken: result.user.accessToken.tokenString
+        )
+        
+        let authResult = try await Auth.auth().signIn(with: credential)
+        let firebaseUser = authResult.user
+        
+        // Try to fetch existing user profile
+        do {
+            currentUser = try await fetchUserProfile(userId: firebaseUser.uid)
+            // If we successfully fetched the profile, don't show profile completion
+            needsProfileCompletion = false
+            temporaryGoogleUser = nil
+        } catch {
+            // If user profile doesn't exist, store temporary user info and set needsProfileCompletion flag
+            temporaryGoogleUser = (
+                id: firebaseUser.uid,
+                name: firebaseUser.displayName ?? "",
+                email: firebaseUser.email ?? ""
+            )
+            needsProfileCompletion = true
+        }
+    }
+    
+    func completeGoogleProfile(birthDate: Date, gender: User.Gender) async throws {
+        guard let tempUser = temporaryGoogleUser else {
+            throw AuthError.signInFailed("Invalid authentication state")
+        }
+        
+        let user = User(
+            id: tempUser.id,
+            name: tempUser.name,
+            email: tempUser.email,
+            birthDate: birthDate,
+            gender: gender
+        )
+        
+        // Save to Firestore
+        try await saveUserProfile(user)
+        
+        // Update current user and clear temporary data
+        self.currentUser = user
+        self.temporaryGoogleUser = nil
+        self.needsProfileCompletion = false
+    }
+    
+    private func createOrUpdateUserProfile(userId: String, name: String, email: String) async throws {
+        // This method is now only used for updating existing profiles
+        let userRef = db.collection("users").document(userId)
+        try await userRef.setData([
+            "name": name,
+            "email": email,
+            "updatedAt": FieldValue.serverTimestamp()
+        ], merge: true)
+        
+        // Fetch and update the current user to get all fields
+        self.currentUser = try await fetchUserProfile(userId: userId)
     }
 }
 

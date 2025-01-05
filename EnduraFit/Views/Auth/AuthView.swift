@@ -1,4 +1,5 @@
 import SwiftUI
+import GoogleSignInSwift
 
 struct AuthView: View {
     @EnvironmentObject var authService: AuthenticationService
@@ -109,6 +110,29 @@ struct AuthView: View {
                     Button(action: { isRegistering.toggle() }) {
                         Text(isRegistering ? "Already have an account? Sign In" : "Don't have an account? Sign Up")
                             .foregroundColor(.blue)
+                    }
+                    .disabled(isLoading)
+                    
+                    Button(action: {
+                        Task {
+                            isLoading = true
+                            do {
+                                try await authService.signInWithGoogle()
+                            } catch {
+                                errorMessage = error.localizedDescription
+                            }
+                            isLoading = false
+                        }
+                    }) {
+                        HStack {
+                            Image(systemName: "g.circle.fill")
+                                .foregroundColor(.blue)
+                            Text("Continue with Google")
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(Color(.systemGray6))
+                        .cornerRadius(10)
                     }
                     .disabled(isLoading)
                 }
